@@ -1,26 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
+import { ProdutoPayload } from './payloads/produto.payload';
+import { Produto } from './entities/produto.entity';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class ProdutosService {
-  create(createProdutoDto: CreateProdutoDto) {
-    return 'This action adds a new produto';
+  constructor(
+    @InjectModel(Produto.name) private produtoModel: Model<Produto>,
+  ) {}
+
+  async create(createProdutoDto: CreateProdutoDto): Promise<ProdutoPayload> {
+    const createProduto = new this.produtoModel(createProdutoDto);
+    const produtoCriado = await createProduto.save();
+    return produtoCriado;
   }
 
-  findAll() {
-    return `This action returns all produtos`;
+  async read(id: string): Promise<ProdutoPayload> {
+    const ProdutoSearch = await this.produtoModel.findOne({ idProduto: id }).populate('Categoria').lean();
+
+    if (!ProdutoSearch)
+      throw new NotFoundException(`Produto :${id} não encontrada!!`);
+    console.log(ProdutoSearch.Categoria); 
+    return ProdutoSearch;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} produto`;
+  async update(
+    id: string,
+    updateProdutoDto: UpdateProdutoDto,
+  ): Promise<ProdutoPayload> {
+    await this.produtoModel.updateOne({ _id: id }, updateProdutoDto);
+    const updateProduto = this.produtoModel.findById(id);
+    return updateProduto;
   }
 
-  update(id: number, updateProdutoDto: UpdateProdutoDto) {
-    return `This action updates a #${id} produto`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} produto`;
+  async delete(id: string): Promise<void> {
+    await this.produtoModel.deleteOne({ _id: id });
   }
 }

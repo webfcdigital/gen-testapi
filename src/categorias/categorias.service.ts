@@ -1,26 +1,50 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Categoria } from './entities/categoria.entity';
+import { Model } from 'mongoose';
+import { CategoriaPayload } from './payloads/categoria.payload';
 
 @Injectable()
 export class CategoriasService {
-  create(createCategoriaDto: CreateCategoriaDto) {
-    return 'This action adds a new categoria';
+  constructor(
+    @InjectModel(Categoria.name) private categoriaModel: Model<Categoria>,
+  ) {}
+
+  async create(
+    createCategoriaDto: CreateCategoriaDto,
+  ): Promise<CategoriaPayload> {
+    const createCategoria = new this.categoriaModel(createCategoriaDto);
+    const categoria = await createCategoria.save();
+    return categoria;
   }
 
-  findAll() {
-    return `This action returns all categorias`;
+  async read(id: string): Promise<CategoriaPayload> {
+    const categoriaSearch = await this.categoriaModel
+      .findOne({ _id: id })
+      .exec();
+
+    if (!categoriaSearch)
+      throw new NotFoundException(`Categoria :${id} não encontrada!!`);
+
+    return categoriaSearch;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} categoria`;
+  async readAll(): Promise<CategoriaPayload[]> {    
+    return await this.categoriaModel.find().populate('produtos').lean();
   }
 
-  update(id: number, updateCategoriaDto: UpdateCategoriaDto) {
-    return `This action updates a #${id} categoria`;
+  async update(
+    id: number,
+    updateCategoriaDto: UpdateCategoriaDto,
+  ): Promise<CategoriaPayload> {
+    await this.categoriaModel.updateOne({ _id: id }, updateCategoriaDto);
+    const updateCategoria = this.categoriaModel.findById(id);
+    return updateCategoria;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} categoria`;
+  async delete(id: number): Promise<void> {
+    await this.categoriaModel.deleteOne({ _id: id }); 
   }
 }
