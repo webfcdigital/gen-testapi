@@ -13,7 +13,6 @@ async function bootstrap() {
       'API responsável pelo gerenciamento de categorias e produtos para avaliação de conhecimento Desenvolvedor NodeJs Sr',
     )
     .setVersion('1.0')
-    .addTag('Tickets')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

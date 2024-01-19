@@ -46,9 +46,9 @@ export class CategoriasService {
     id: string,
     updateCategoriaDto: UpdateCategoriaDto,
   ): Promise<CategoriaPayload> {
-    await this.categoriaModel.updateOne(
+    await this.categoriaModel.findOneAndUpdate(
       { idCategoria: id },
-      updateCategoriaDto,
+      updateCategoriaDto
     );
     const updateCategoria = this.categoriaModel.findOne({ idCategoria: id });
     return updateCategoria;

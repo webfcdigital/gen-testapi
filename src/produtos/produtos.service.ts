@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
 import { ProdutoPayload } from './payloads/produto.payload';
@@ -42,13 +46,24 @@ export class ProdutosService {
     id: string,
     updateProdutoDto: UpdateProdutoDto,
   ): Promise<ProdutoPayload> {
-    await this.produtoModel.updateOne({ _id: id }, updateProdutoDto);
-    const updateProduto = this.produtoModel.findById(id);
+    await this.produtoModel
+      .findOneAndUpdate({ idProduto: id }, updateProdutoDto)
+      .then((result) => {
+        return result;
+      });
+    const updateProduto = this.produtoModel.findOne({ idProduto: id });
     return updateProduto;
   }
 
   async delete(id: string): Promise<void> {
-    await this.produtoModel.deleteOne({ _id: id });
+    await this.produtoModel
+      .findOneAndDelete({ idProduto: id })
+      .then((result) => {
+        console.log(result);
+      })
+      .catch((err) => {
+        throw new ForbiddenException(err);
+      });
   }
 
   async calculoParcelas(calculo: CalculoParcelaDto): Promise<any> {
@@ -57,10 +72,9 @@ export class ProdutosService {
       .populate('Categoria')
       .lean();
 
-    if (!dadosProduto)
-      throw new NotFoundException(`Produto não encontrada!!`);
+    if (!dadosProduto) throw new NotFoundException(`Produto não encontrada!!`);
 
-      console.log(dadosProduto.Categoria); 
+    console.log(dadosProduto.Categoria);
     if (!dadosProduto.Categoria.pctJuros)
       throw new NotFoundException(`Categoria inválida`);
 
@@ -68,12 +82,12 @@ export class ProdutosService {
     const valorParcelas =
       (dadosProduto.valor * i) / (1 - Math.pow(1 + i, -calculo.numeroParcelas));
 
-    return { 
-      "produto": dadosProduto.nome,
-      "valor": dadosProduto.valor,
-      "JurosCategora": dadosProduto.Categoria.pctJuros,
-      "numeroParcelas": calculo.numeroParcelas,
-      "valorParcelas": valorParcelas 
+    return {
+      produto: dadosProduto.nome,
+      valor: dadosProduto.valor,
+      JurosCategora: dadosProduto.Categoria.pctJuros,
+      numeroParcelas: calculo.numeroParcelas,
+      valorParcelas: valorParcelas,
     };
   }
 }

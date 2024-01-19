@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { ProdutoPayload } from './payloads/produto.payload';
 import { CreateProdutoDto } from './dto/create-produto.dto';
+import { UpdateProdutoDto } from './dto/update-produto.dto';
 
 describe('ProdutosService', () => {
   let produtoService: ProdutosService;
@@ -60,6 +61,20 @@ describe('ProdutosService', () => {
         );
 
       expect(await produtoService.create(novoProduto)).toBe(novoProduto);
+    });
+  });
+
+  
+  
+
+  describe('delete', () => {
+    it('Deve excluir um produto', async () => {
+      const deleteProduto: string = '4d7a9b13-fa4b-4a1e-bc6a-8eee7394741c';
+
+      jest
+        .spyOn(produtoService, 'delete')
+        .mockImplementation(() => new Promise((resolve, reject) => resolve()));
+      
     });
   });
 });
