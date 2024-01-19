@@ -11,7 +11,7 @@ import { ProdutosModule } from './produtos/produtos.module';
     ConfigModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGO_CONNECTION_STRING),
     CategoriasModule,
-    ProdutosModule,
+    ProdutosModule
   ],
   controllers: [AppController],
   providers: [AppService],
