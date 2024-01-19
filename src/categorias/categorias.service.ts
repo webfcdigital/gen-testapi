@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -22,8 +26,11 @@ export class CategoriasService {
 
   async read(id: string): Promise<CategoriaPayload> {
     const categoriaSearch = await this.categoriaModel
-      .findOne({ _id: id })
-      .exec();
+      .findOne({ idCategoria: id })
+      .populate('produtos')
+      .lean();
+
+
 
     if (!categoriaSearch)
       throw new NotFoundException(`Categoria :${id} não encontrada!!`);
@@ -31,20 +38,30 @@ export class CategoriasService {
     return categoriaSearch;
   }
 
-  async readAll(): Promise<CategoriaPayload[]> {    
+  async readAll(): Promise<CategoriaPayload[]> {
     return await this.categoriaModel.find().populate('produtos').lean();
   }
 
   async update(
-    id: number,
+    id: string,
     updateCategoriaDto: UpdateCategoriaDto,
   ): Promise<CategoriaPayload> {
-    await this.categoriaModel.updateOne({ _id: id }, updateCategoriaDto);
-    const updateCategoria = this.categoriaModel.findById(id);
+    await this.categoriaModel.updateOne(
+      { idCategoria: id },
+      updateCategoriaDto,
+    );
+    const updateCategoria = this.categoriaModel.findOne({ idCategoria: id });
     return updateCategoria;
   }
 
-  async delete(id: number): Promise<void> {
-    await this.categoriaModel.deleteOne({ _id: id }); 
+  async delete(id: string): Promise<void> {
+    await this.categoriaModel
+      .findOneAndDelete({ idCategoria: id })
+      .then(result => {
+        console.log(result); 
+      })
+      .catch((err) => {
+        throw new ForbiddenException(err);
+      });
   }
 }

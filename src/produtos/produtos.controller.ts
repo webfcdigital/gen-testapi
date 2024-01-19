@@ -10,6 +10,7 @@ import {
 import { ProdutosService } from './produtos.service';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
+import { CalculoParcelaDto } from './dto/calculo-parcela.dto';
 
 @Controller('produtos')
 export class ProdutosController {
@@ -18,6 +19,16 @@ export class ProdutosController {
   @Post()
   create(@Body() createProdutoDto: CreateProdutoDto) {
     return this.produtosService.create(createProdutoDto);
+  }
+
+  @Post('/calcular-parcelas')
+  calcularParcelas(@Body() calculoParcela: CalculoParcelaDto) {
+    return this.produtosService.calculoParcelas(calculoParcela);
+  }
+
+  @Get('/list')
+  findAll() {
+    return this.produtosService.readAll();
   }
 
   @Get(':id')

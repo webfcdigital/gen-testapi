@@ -5,6 +5,7 @@ import { ProdutoPayload } from './payloads/produto.payload';
 import { Produto } from './entities/produto.entity';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { CalculoParcelaDto } from './dto/calculo-parcela.dto';
 
 @Injectable()
 export class ProdutosService {
@@ -19,14 +20,24 @@ export class ProdutosService {
   }
 
   async read(id: string): Promise<ProdutoPayload> {
-    const ProdutoSearch = await this.produtoModel.findOne({ idProduto: id }).populate('Categoria').lean();
+    const ProdutoSearch = await this.produtoModel
+      .findOne({ idProduto: id })
+      .populate('Categoria')
+      .lean();
 
     if (!ProdutoSearch)
       throw new NotFoundException(`Produto :${id} não encontrada!!`);
-    console.log(ProdutoSearch.Categoria); 
+
     return ProdutoSearch;
   }
+  async readAll(): Promise<ProdutoPayload[]> {
+    const ProdutoSearch = await this.produtoModel
+      .find()
+      .populate('Categoria')
+      .lean();
 
+    return ProdutoSearch;
+  }
   async update(
     id: string,
     updateProdutoDto: UpdateProdutoDto,
@@ -38,5 +49,31 @@ export class ProdutosService {
 
   async delete(id: string): Promise<void> {
     await this.produtoModel.deleteOne({ _id: id });
+  }
+
+  async calculoParcelas(calculo: CalculoParcelaDto): Promise<any> {
+    const dadosProduto = await this.produtoModel
+      .findOne({ idProduto: calculo.idProduto })
+      .populate('Categoria')
+      .lean();
+
+    if (!dadosProduto)
+      throw new NotFoundException(`Produto não encontrada!!`);
+
+      console.log(dadosProduto.Categoria); 
+    if (!dadosProduto.Categoria.pctJuros)
+      throw new NotFoundException(`Categoria inválida`);
+
+    const i = dadosProduto.Categoria.pctJuros / 100;
+    const valorParcelas =
+      (dadosProduto.valor * i) / (1 - Math.pow(1 + i, -calculo.numeroParcelas));
+
+    return { 
+      "produto": dadosProduto.nome,
+      "valor": dadosProduto.valor,
+      "JurosCategora": dadosProduto.Categoria.pctJuros,
+      "numeroParcelas": calculo.numeroParcelas,
+      "valorParcelas": valorParcelas 
+    };
   }
 }

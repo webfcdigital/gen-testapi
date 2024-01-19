@@ -35,11 +35,11 @@ export class CategoriasController {
     @Param('id') id: string,
     @Body() updateCategoriaDto: UpdateCategoriaDto,
   ) {
-    return this.categoriasService.update(+id, updateCategoriaDto);
+    return this.categoriasService.update(id, updateCategoriaDto);
   }
 
   @Delete(':id')
   delete(@Param('id') id: string) {
-    return this.categoriasService.delete(+id);
+    return this.categoriasService.delete(id);
   }
 }

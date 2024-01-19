@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Type } from 'class-transformer';
 import { Document, Types } from 'mongoose';
 import { type } from 'os';
-import { Produto } from 'src/produtos/entities/produto.entity';
+import { Produto } from '../../produtos/entities/produto.entity';
 import { v4 as uuid } from 'uuid';
 export type CategoriaDocument = Categoria & Document;
 
@@ -41,8 +41,7 @@ export class Categoria {
 }
 export const CategoriaSchema = SchemaFactory.createForClass(Categoria);
 CategoriaSchema.virtual('produtos', {
-  ref: Produto.name,
-  localField: '_id',
-  foreignField: 'idCategoria',
-  justOne: false,
+  ref: 'Produto',
+  localField: 'idCategoria',
+  foreignField: 'idCategoria'
 });
